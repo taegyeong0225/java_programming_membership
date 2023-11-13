@@ -9,6 +9,9 @@ import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.JCheckBox;
 
+import java.sql.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
@@ -20,6 +23,7 @@ import javax.swing.JCheckBox;
  */
 public class MainFrame extends javax.swing.JFrame {
 
+    DB_MAN DBM = new DB_MAN(); // 추가
     /**
      * Creates new form MainFrame
      */
@@ -47,7 +51,7 @@ public class MainFrame extends javax.swing.JFrame {
         txtID = new javax.swing.JTextField();
         txtName = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        btnJoin = new javax.swing.JButton();
         lblMember = new javax.swing.JLabel();
         lblBobby = new javax.swing.JLabel();
         rbtnMember = new javax.swing.JRadioButton();
@@ -86,10 +90,10 @@ public class MainFrame extends javax.swing.JFrame {
         jLabel5.setFont(new java.awt.Font("맑은 고딕", 1, 18)); // NOI18N
         jLabel5.setText("회원 가입");
 
-        jButton1.setText("회원 가입");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btnJoin.setText("회원 가입");
+        btnJoin.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btnJoinActionPerformed(evt);
             }
         });
 
@@ -136,7 +140,7 @@ public class MainFrame extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jButton1)
+                    .addComponent(btnJoin)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                         .addGroup(layout.createSequentialGroup()
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -227,7 +231,7 @@ public class MainFrame extends javax.swing.JFrame {
                             .addComponent(chbBook)
                             .addComponent(chbTennis))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton1)
+                .addComponent(btnJoin)
                 .addGap(50, 50, 50))
         );
 
@@ -238,7 +242,7 @@ public class MainFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtIDActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void btnJoinActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnJoinActionPerformed
         String id = txtID.getText();
         char[] passwd = pswPW.getPassword();
         char[] pwCheck = pswCheck.getPassword();
@@ -261,16 +265,24 @@ public class MainFrame extends javax.swing.JFrame {
         
         if (Arrays.equals(passwd, pwCheck)) {
             if (!isIdDuplicate(id)) {   
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter("member.txt", true))) {
-                    writer.write(id + " ");
-                    writer.write(new String(passwd) + " ");
-                    writer.write(name + " ");
+                try {
+                    
+                    DB_MAN db = new DB_MAN();
+                    db.dbOpen();
+                    
+                    String sql = "INSERT INTO MEMBERSHIP (ID, PASSWORD, NAME, MAMBER_TYPE, FAVOR) VALUES (?, ?, ?, ?)";
+                    PreparedStatement pstmt = db.DB_con.prepareStatement(sql);
+                    
+                    pstmt.setString(1, id);
+                    pstmt.setString(2, new String(passwd));
+                    pstmt.setString(3, name);
+                    
                     if(rbtnMember.isSelected())
-                        writer.write("정회원 ");
+                        pstmt.setString(4, "정회원 ");
                     else if(rbtnNoMember.isSelected())
-                        writer.write("준회원 ");
+                        pstmt.setString(4, "준회원 ");
                     else if(rbtnStudent.isSelected())
-                        writer.write("학생회원 ");
+                        pstmt.setString(4, "학생회원 ");
                     
                     int interestFileds = 0;
                     for (Map.Entry<JCheckBox, Integer> entry : checkboxWeights.entrySet()){
@@ -279,10 +291,13 @@ public class MainFrame extends javax.swing.JFrame {
                             interestFileds += entry.getValue();
                         }
                     }
-                    writer.write(Integer.toString(interestFileds));
-                    writer.newLine();
+                    pstmt.setInt(5, interestFileds);
                     
-                    writer.flush(); 
+                    pstmt.executeUpdate();
+                    
+                    pstmt.close();
+                    db.dbClose();
+                    
                     JOptionPane.showMessageDialog(null, "가입 처리가 완료되었습니다.", "가입 성공", JOptionPane.INFORMATION_MESSAGE);
                 
                     txtID.setText("");
@@ -296,8 +311,8 @@ public class MainFrame extends javax.swing.JFrame {
                     chbSki.setSelected(false);
                     chbSwim.setSelected(false);
                     chbTennis.setSelected(false);
-                } catch (IOException e){
-                    e.printStackTrace();
+                } catch (SQLException e){
+                    JOptionPane.showMessageDialog(null, "DB 오류 "+ e.getMessage(), "가입 처리 오류", JOptionPane.ERROR_MESSAGE);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -308,7 +323,7 @@ public class MainFrame extends javax.swing.JFrame {
             String message = "비밀번호가 일치하지 않습니다.";
             JOptionPane.showMessageDialog(null, message, "가입 처리 거절", JOptionPane.ERROR_MESSAGE);
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_btnJoinActionPerformed
 
     private void btnCheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCheckActionPerformed
 
@@ -334,27 +349,34 @@ public class MainFrame extends javax.swing.JFrame {
     private void pswCheckKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_pswCheckKeyTyped
         // 비밀번호 확인란에 비밀번호를 채우고 엔터를 누르면 비밀번호가 같은지 확인
         // 취소 (회원가입 버튼을 누르는 과정에서 확인하기로 함)
-        
-        
-        
-        
-        
     }//GEN-LAST:event_pswCheckKeyTyped
     private boolean isIdDuplicate(String id){
         
+        DB_MAN db = new DB_MAN();
         
-        
-        try (BufferedReader reader = new BufferedReader(new FileReader("member.txt"))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(" ");
-                if (parts.length >= 1 && parts[0].equals(id)){
+        try {
+            db.dbOpen();
+            String query = "SELECT * COUNT(*) AS COUNT FROM MEMBERSHIP WHERE ID =?";
+            
+            PreparedStatement pstmt = db.DB_con.prepareStatement(query);
+            pstmt.setString(1, id);
+            
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                int count = rs.getInt("count");
+                if (count > 0) {
                     return true;
                 }
             }
-        } catch (IOException e) {
-           
+            rs.close();
+            pstmt.close();
+            db.dbClose();
+        } catch (SQLException e) {
+        } catch (IOException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
         return false;
     }
     /**
@@ -395,13 +417,13 @@ public class MainFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup BtnMember;
     private javax.swing.JButton btnCheck;
+    private javax.swing.JButton btnJoin;
     private javax.swing.JCheckBox chbBook;
     private javax.swing.JCheckBox chbGame;
     private javax.swing.JCheckBox chbGolf;
     private javax.swing.JCheckBox chbSki;
     private javax.swing.JCheckBox chbSwim;
     private javax.swing.JCheckBox chbTennis;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel lblBobby;
     private javax.swing.JLabel lblCheck;
