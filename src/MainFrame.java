@@ -270,7 +270,7 @@ public class MainFrame extends javax.swing.JFrame {
                     DB_MAN db = new DB_MAN();
                     db.dbOpen();
                     
-                    String sql = "INSERT INTO MEMBERSHIP (ID, PASSWORD, NAME, MAMBER_TYPE, FAVOR) VALUES (?, ?, ?, ?)";
+                    String sql = "INSERT INTO MEMBERSHIP (ID, PWD, NAME, MEMBER_TYPE, FAVOR) VALUES (?, ?, ?, ?, ?)";
                     PreparedStatement pstmt = db.DB_con.prepareStatement(sql);
                     
                     pstmt.setString(1, id);
@@ -312,7 +312,7 @@ public class MainFrame extends javax.swing.JFrame {
                     chbSwim.setSelected(false);
                     chbTennis.setSelected(false);
                 } catch (SQLException e){
-                    JOptionPane.showMessageDialog(null, "DB 오류 "+ e.getMessage(), "가입 처리 오류", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "DB 오류 :  "+ e.getMessage(), "가입 처리 오류", JOptionPane.ERROR_MESSAGE);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
