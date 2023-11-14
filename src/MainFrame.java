@@ -1,8 +1,4 @@
-import java.io.BufferedReader; 
-import java.io.BufferedWriter;
-import java.io.FileReader;
 import java.util.Arrays; // Arrays 임포트 추가
-import java.io.FileWriter; // alert창 import
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
